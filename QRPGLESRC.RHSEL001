@@ -1,0 +1,122 @@
+     H Copyright('(C) Copyright Credito Hipotecario Nacional de Guatemala 2016')
+     ‚**************************************************************************
+     ›* EMPRESA.......:šCREDITO HIPOTECARIO NACIONAL DE GUATEMALA              *
+     ›* PROGRAMA......:šRHSEL001                                               *
+     ›* DESCRIPCION...:˜Selección Empleados Visual-Hur  RRHH                   *
+     ›* AUTOR.........:‚MANUEL ENRIQUE ACEVEDO GIRON                           *
+     ›* FECHA.........:ŠGuatemala, 08/06/2016                                  *
+     ‚*----CAMBIOS ------------------------------------------------------------*
+     ‚*                                                                        *
+     ‚**************************************************************************
+     FRHEMPL01  IF   E           K DISK
+     FRHEMPL02  IF   E           K DISK    RENAME(RCEMPL:RCEMPL2)
+     FRHEMPL03  IF   E           K DISK    RENAME(RCEMPL:RCEMPL3)
+     FRHSEL001  CF   E             WORKSTN SFILE(SFL001:RRNN1)
+      *
+     ‚**************************************************************************
+      ** PARAMETROS DE ENTRADA
+     ‚**************************************************************************
+     C     *ENTRY        PLIST
+     C                   PARM                    @@CODIGO         09 0
+     C                   PARM                    @@DESCRI         50
+     ‚**************************************************************************
+      ** LLAVES
+     ‚**************************************************************************
+     C     KSITUA        KLIST
+     C                   KFLD                    SITUA            09 0
+     C     KSITUB        KLIST
+     C                   KFLD                    SITUC           107
+     ›**************************************************************************
+     ›*š                               INICIO                                 **
+     ›**************************************************************************
+     C                   EVAL      *IN15 = '1'
+     C                   DOW       *IN12='0'
+     C                   EXSR      BORRAR
+     C                   WRITE     FMT090
+     C                   EXFMT     CTRL001
+      *------------------------------
+      * Opciones para Busquedas
+      *------------------------------
+     C                   SELECT
+     C                   WHEN      SITUA > 0 AND SITUB = *BLANKS
+     C                   EVAL      *IN15 = '0'
+     C                   EVAL      *IN16 = '1'
+     C                   EVAL      *IN17 = '0'
+     C                   CLEAR                   SITUC
+     C                   WHEN      SITUA = 0 AND SITUB <> *BLANKS
+     C                   MOVEL     SITUB         SITUC
+     C                   EVAL      *IN15 = '0'
+     C                   EVAL      *IN16 = '0'
+     C                   EVAL      *IN17 = '1'
+     C                   WHEN      SITUA > 0 AND SITUB <> *BLANKS
+     C                   EVAL      *IN15 = '1'
+     C                   EVAL      *IN16 = '0'
+     C                   EVAL      *IN17 = '0'
+     C                   CLEAR                   SITUC
+     C                   WHEN      SITUA = 0 AND SITUB = *BLANKS
+     C                   EVAL      *IN15 = '1'
+     C                   EVAL      *IN16 = '0'
+     C                   EVAL      *IN17 = '0'
+     C                   CLEAR                   SITUC
+     C                   ENDSL
+      *
+      *
+     C                   READC     SFL001                               3535
+     C                   IF        *IN35 = '0'
+     C                   SELECT
+     C                   WHEN      SEL =  1
+     C     RRNN1         CHAIN     SFL001
+     C                   EVAL      @@CODIGO = CODEMP
+     C                   EVAL      @@DESCRI = NOMBRE
+     C                   LEAVE
+     C                   ENDSL
+     C                   READC     SFL001                               3535
+     C                   ENDIF
+     C                   ENDDO
+     ›**************************************************************************
+     ›*š                              FINAL                                   **
+     ›**************************************************************************
+     C                   EVAL      *INLR = '1'
+     C                   RETURN
+     ‚**************************************************************************
+      **  BORRAR SFL
+     ‚**************************************************************************
+     C     BORRAR        BEGSR
+     C                   EVAL      *IN32='1'
+     C                   EVAL      *IN37='0'
+     C                   CLEAR                   RRNN1             5 0
+     C                   CLEAR                   SEL
+     C                   CLEAR                   NOMBRE
+     C                   WRITE     CTRL001
+     C                   EVAL      *IN32='0'
+     C                   EXSR      CARGAR
+     C                   ENDSR
+     ‚**************************************************************************
+      **  CARGAR DATOS
+     ‚**************************************************************************
+     C     CARGAR        BEGSR
+     C   15*LOVAL        SETLL     RHEMPL01
+     C   16KSITUA        SETLL     RHEMPL02
+     C   17KSITUB        SETLL     RHEMPL03
+     C   15              READ      RHEMPL01                               40
+     C   16              READ      RHEMPL02                               40
+     C   17              READ      RHEMPL03                               40
+     C                   DOW       *IN40 = '0'
+     C***  '601101':6    SCAN      A_CTCOD
+     C***                IF        %FOUND
+     C***                EXSR      IMPRIMIR
+     C***                ENDIF
+     C                   MOVEL     NOMAPE        NOMBRE
+     C                   EVAL      RRNN1 = RRNN1 + 1
+     C                   WRITE     SFL001
+     C   15              READ      RHEMPL01                               40
+     C   16              READ      RHEMPL02                               40
+     C   17              READ      RHEMPL03                               40
+     C                   ENDDO
+      *
+     C                   IF        RRNN1 > 0
+     C                   EVAL      *IN37 = '1'
+     C                   ELSE
+     C                   EVAL      *IN37 = '0'
+     C                   ENDIF
+     C                   ENDSR
